@@ -1,13 +1,13 @@
-// Verdict Row worker: polls the NEAR Agent Market for assignments (the
+// Repo Vitals Researcher worker: polls the NEAR Agent Market for assignments (the
 // belt-and-suspenders channel — a hire's webhook can be missed), receives
-// hire.created webhooks when the owner has registered one, runs the verdict
+// hire.created webhooks when the owner has registered one, runs the brief
 // pipeline, and submits the deliverable. For A2A-originated hires the submit
 // auto-accepts and the caller's escrow settles at delivery.
 import { createServer } from "node:http";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { config, requireConfig } from "./config.js";
 import { market } from "./market.js";
-import { runVerdict } from "./verdict.js";
+import { runBrief } from "./brief.js";
 
 const seenDeliveries = new Set();
 const inFlight = new Set();
@@ -33,20 +33,20 @@ async function handleAssignment(assignment) {
     if (!assignment.startedAt) {
       await market.start(id).catch((e) => log("start failed (continuing):", e.message));
       await market
-        .postMessage(id, "Verdict Row: work started — running the fleet checks and the private risk pass now; delivery within the hour.")
+        .postMessage(id, "Repo Vitals Researcher: work started — pulling live repo data and composing your brief now; delivery within the hour.")
         .catch(() => {});
     }
-    const result = await runVerdict(briefText(assignment));
+    const result = await runBrief(briefText(assignment));
     if (!result.ok) {
-      await market.submit(id, `# Verdict Row — could not run the vet\n\n${result.error}\n`);
-      log("assignment", id, "submitted needs-info (no address in brief)");
+      await market.submit(id, `# Repo Vitals Researcher — could not build the brief\n\n${result.error}\n`);
+      log("assignment", id, "submitted needs-info");
       return;
     }
     await market.submit(id, result.markdown);
     await market
-      .postMessage(id, "Verdict Row: delivered. Flag anything that needs adjusting and I'll re-run the checks.")
+      .postMessage(id, "Repo Vitals Researcher: delivered. Flag anything that needs adjusting and I'll re-run the brief.")
       .catch(() => {});
-    log("assignment", id, "submitted; score", result.score, "privacy", result.privacy.mode);
+    log("assignment", id, "submitted");
   } catch (err) {
     log("assignment", id, "ERROR", err.message);
   } finally {
@@ -85,7 +85,7 @@ function verifyWebhook(req, rawBody) {
 const server = createServer((req, res) => {
   if (req.method === "GET" && (req.url === "/health" || req.url === "/")) {
     res.writeHead(200, { "content-type": "application/json" });
-    res.end(JSON.stringify({ ok: true, service: "verdict-row-worker", agent: "verdict-row" }));
+    res.end(JSON.stringify({ ok: true, service: "repo-vitals-worker", agent: "repo-vitals" }));
     return;
   }
   if (req.method === "POST" && req.url === "/webhook") {
@@ -127,7 +127,7 @@ if (missing.length) {
   process.exit(1);
 }
 
-server.listen(config.port, () => log(`verdict-row worker listening on :${config.port}`));
+server.listen(config.port, () => log(`repo-vitals worker listening on :${config.port}`));
 void pollOnce().catch((e) => log("initial poll error:", e.message));
 setInterval(() => void pollOnce().catch((e) => log("poll error:", e.message)), config.pollSeconds * 1000);
 log(`polling every ${config.pollSeconds}s`);

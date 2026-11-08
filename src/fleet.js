@@ -60,3 +60,18 @@ export async function walletVerdict(address) {
 export async function tokenVerdict(address, chain = "base") {
   return paidPost(`${config.tokenVerdictUrl}/v1/verdict`, { address, chain }, 0.02);
 }
+
+// Repo Vitals bundle (prices verified live 2026-11-07 against each 402):
+//   StallRow /v1/repo-vitals $0.005   StallRow /v1/repo-readme $0.005
+//   StallRow /v1/page-metadata $0.005
+export async function repoVitals(repo) {
+  return paidPost(`${config.stallRowUrl}/v1/repo-vitals`, { repo }, 0.005);
+}
+
+export async function repoReadme(repo) {
+  return paidPost(`${config.stallRowUrl}/v1/repo-readme`, { repo }, 0.005);
+}
+
+export async function pageMetadata(url) {
+  return paidPost(`${config.stallRowUrl}/v1/page-metadata`, { url }, 0.005);
+}

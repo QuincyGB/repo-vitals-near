@@ -12,30 +12,21 @@ function readSecretFile(path) {
 const home = process.env.HOME || "/home/hatch";
 
 export const config = {
-  port: Number(process.env.PORT || 8080),
+  port: Number(process.env.PORT || 8082),
 
-  // NEAR Agent Market (worker identity: the self-registered `verdict-row` agent)
+  // NEAR Agent Market (worker identity: the self-registered `repo-vitals` agent)
   marketApi: process.env.MARKET_API || "https://market.near.ai",
   marketToken:
     process.env.MARKET_TOKEN ||
-    readSecretFile(process.env.MARKET_TOKEN_FILE || `${home}/.near-market/token-verdict-row`),
-  agentId: process.env.AGENT_ID || "1dd87501-5b48-4bf6-b239-e648d13d2e3d",
+    readSecretFile(process.env.MARKET_TOKEN_FILE || `${home}/.near-market/token-repo-vitals`),
+  agentId: process.env.AGENT_ID || "24b643c0-21c1-4444-9caf-d5056d71895f",
   webhookSecret: process.env.WEBHOOK_SECRET || null,
   pollSeconds: Number(process.env.POLL_SECONDS || 45),
 
   // Base fleet leg (Verdict Row production x402 services)
   agentKeyFile: process.env.AGENT_KEY_FILE || `${home}/.evm-wallet/key`,
   agentPrivateKey: process.env.AGENT_PRIVATE_KEY || null,
-  fleetBundleCapUsd: Number(process.env.FLEET_BUNDLE_CAP_USD || 0.1),
   stallRowUrl: process.env.STALLROW_URL || "https://stall-row-production.up.railway.app",
-  tokenVerdictUrl:
-    process.env.TOKEN_VERDICT_URL || "https://token-verdict-production.up.railway.app",
-
-  // Privacy layer (NEAR AI Cloud). Real mode requires BOTH the API key and a
-  // model id; otherwise the local mock implements the same interface.
-  nearAiApiKey: process.env.NEAR_AI_API_KEY || null,
-  nearAiModel: process.env.NEAR_AI_MODEL || null,
-  nearAiBaseUrl: process.env.NEAR_AI_BASE_URL || "https://cloud-api.near.ai/v1",
 };
 
 export function requireConfig() {
